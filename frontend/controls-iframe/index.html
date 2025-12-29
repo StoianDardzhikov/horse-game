@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Horse Racing - Controls</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: #fff;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        padding: 15px;
+        min-height: 100vh;
+      }
+      #connection-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .connected {
+        background: #00ff88;
+      }
+      .disconnected {
+        background: #ff4444;
+      }
+
+      .balance-display {
+        font-size: 18px;
+        margin-bottom: 15px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        text-align: center;
+      }
+      .balance-amount {
+        color: #00ff88;
+        font-weight: bold;
+        font-size: 24px;
+      }
+
+      .round-status {
+        font-size: 14px;
+        padding: 10px 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+        margin-bottom: 15px;
+        text-align: center;
+        font-weight: bold;
+      }
+      .round-status.betting {
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+      }
+      .round-status.running {
+        background: rgba(255, 204, 0, 0.2);
+        color: #ffcc00;
+      }
+
+      .section-label {
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .bet-section {
+        margin-bottom: 15px;
+      }
+
+      .bet-input {
+        width: 100%;
+        padding: 12px;
+        font-size: 18px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid #3a3a5e;
+        border-radius: 8px;
+        color: #fff;
+        outline: none;
+        text-align: center;
+      }
+      .bet-input:focus {
+        border-color: #00ff88;
+      }
+      .bet-input:disabled {
+        opacity: 0.5;
+      }
+
+      .quick-bets {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+      .quick-bet-btn {
+        flex: 1;
+        min-width: 45px;
+        padding: 8px 4px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid #3a3a5e;
+        border-radius: 4px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+      }
+      .quick-bet-btn:hover {
+        background: rgba(0, 255, 136, 0.2);
+        border-color: #00ff88;
+      }
+      .quick-bet-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .horse-selection {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 15px;
+      }
+      .horse-btn {
+        padding: 12px 8px;
+        font-size: 13px;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.3);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+      }
+      .horse-btn:hover {
+        transform: translateY(-2px);
+      }
+      .horse-btn.selected {
+        border-color: #00ff88;
+        background: rgba(0, 255, 136, 0.2);
+      }
+      .horse-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .horse-btn .horse-name {
+        font-weight: bold;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .horse-btn .horse-odds {
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .horse-btn .horse-number {
+        font-size: 10px;
+        opacity: 0.7;
+      }
+
+      .action-btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .bet-btn {
+        background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+        color: #000;
+      }
+      .bet-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+      }
+      .bet-btn:disabled {
+        background: #3a3a5e;
+        color: #666;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .current-bet {
+        padding: 12px;
+        background: rgba(255, 204, 0, 0.2);
+        border: 1px solid #ffcc00;
+        border-radius: 8px;
+        margin-top: 15px;
+        text-align: center;
+      }
+      .current-bet-amount {
+        color: #ffcc00;
+        font-weight: bold;
+        font-size: 20px;
+      }
+      .current-bet-horse {
+        margin-top: 5px;
+        font-size: 14px;
+      }
+
+      .status-message {
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 15px;
+        text-align: center;
+        display: none;
+        font-weight: bold;
+      }
+      .status-success {
+        background: rgba(0, 255, 136, 0.2);
+        border: 1px solid #00ff88;
+        color: #00ff88;
+        display: block;
+      }
+      .status-error {
+        background: rgba(255, 68, 68, 0.2);
+        border: 1px solid #ff4444;
+        color: #ff4444;
+        display: block;
+      }
+      .status-info {
+        background: rgba(68, 136, 255, 0.2);
+        border: 1px solid #4488ff;
+        color: #4488ff;
+        display: block;
+      }
+
+      .rtp-info {
+        margin-top: 15px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        font-size: 11px;
+        color: #666;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="connection-status" class="disconnected"></div>
+
+    <div class="balance-display">
+      <div style="font-size: 12px; color: #888;">BALANCE</div>
+      <span class="balance-amount" id="balance">0.00</span>
+      <span id="currency">EUR</span>
+    </div>
+
+    <div class="round-status" id="round-status">Connecting...</div>
+
+    <div class="bet-section">
+      <div class="section-label">Bet Amount</div>
+      <input
+        type="number"
+        id="bet-amount"
+        class="bet-input"
+        placeholder="Enter bet amount"
+        min="1"
+        step="1"
+        value="10"
+      />
+      <div class="quick-bets">
+        <button class="quick-bet-btn" data-action="half">1/2</button>
+        <button class="quick-bet-btn" data-action="double">2x</button>
+        <button class="quick-bet-btn" data-value="10">10</button>
+        <button class="quick-bet-btn" data-value="50">50</button>
+        <button class="quick-bet-btn" data-value="100">100</button>
+        <button class="quick-bet-btn" data-action="max">MAX</button>
+      </div>
+    </div>
+
+    <div class="bet-section">
+      <div class="section-label">Pick Your Horse</div>
+      <div class="horse-selection" id="horse-selection">
+        <!-- Horses will be generated by JS -->
+      </div>
+    </div>
+
+    <button id="bet-btn" class="action-btn bet-btn" disabled>Place Bet</button>
+
+    <div id="current-bet" class="current-bet" style="display: none;">
+      <div>Your Bet</div>
+      <div class="current-bet-amount" id="current-bet-amount">0.00</div>
+      <div class="current-bet-horse" id="current-bet-horse"></div>
+    </div>
+
+    <div id="status-message" class="status-message"></div>
+
+    <div class="rtp-info">
+      RTP: 96.55% | Provably Fair
+    </div>
+
+    <script src="/horses/socket.io/socket.io.js"></script>
+    <script src="/horses/controls-iframe/controls.js"></script>
+  </body>
+</html>
