@@ -22,7 +22,7 @@ class GameControls {
   }
 
   connectSocket(sessionId) {
-    this.socket = io("/ws/controls", {
+    this.socket = io("/horses/ws/controls", {
       path: "/horses/socket.io/",
       query: { sessionId },
       transports: ["websocket", "polling"],

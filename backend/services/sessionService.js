@@ -53,8 +53,8 @@ class SessionService {
 
     return {
       sessionId,
-      gameUrl: `/game-iframe?sessionId=${sessionId}`,
-      controlsUrl: `/controls-iframe?sessionId=${sessionId}`,
+      gameUrl: `/game-iframe/?sessionId=${sessionId}`,
+      controlsUrl: `/controls-iframe/?sessionId=${sessionId}`,
       expiresAt,
     };
   }
