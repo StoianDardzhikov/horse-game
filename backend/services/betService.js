@@ -7,7 +7,7 @@ class BetService {
     this.sessionService = sessionService;
   }
 
-  async placeBet(sessionId, amount, betType, selection) {
+  async placeBet(sessionId, amount, betType, selection, clientTimestamp = null) {
     const session = this.sessionService.getSession(sessionId);
     if (!session) throw new Error("Invalid session");
 
@@ -57,7 +57,8 @@ class BetService {
         amount,
         betType,
         selection,
-        transactionId
+        transactionId,
+        clientTimestamp
       );
     } catch (e) {
       // Rollback if engine rejects

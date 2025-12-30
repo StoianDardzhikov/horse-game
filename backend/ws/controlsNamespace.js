@@ -49,7 +49,8 @@ function setupControlsNamespace(io, sessionService, betService, gameEngine) {
           sessionId,
           data.amount,
           data.betType || "horse",
-          data.selection
+          data.selection,
+          data.timestamp || null
         );
         socket.emit("bet_result", result);
 

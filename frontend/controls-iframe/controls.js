@@ -243,9 +243,11 @@ class GameControls {
     betBtn.textContent = "Placing...";
     this.disableBetInputs(true);
 
+    // Include timestamp so server knows when bet was initiated
     this.socket.emit("bet", {
       amount,
       selection: this.selectedHorse.toString(),
+      timestamp: Date.now(),
     });
   }
 

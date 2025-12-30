@@ -17,6 +17,8 @@ class HorseEngine {
       outcome,
       state: "BETTING",
       startTime: null,
+      bettingStartTime: Date.now(),
+      bettingEndTime: Date.now() + config.GAME.BETTING_PHASE_MS,
       bets: new Map(),
       horsePositions: this.horses.map((h) => ({ id: h.id, position: 0 })),
     };
@@ -288,10 +290,25 @@ class HorseEngine {
     return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
   }
 
-  registerBet(playerId, amount, betType, selection, transactionId) {
-    if (!this.currentRound || this.currentRound.state !== "BETTING") {
+  registerBet(playerId, amount, betType, selection, transactionId, clientTimestamp = null) {
+    if (!this.currentRound) {
       throw new Error("Betting not allowed");
     }
+
+    const now = Date.now();
+    const gracePeriodEnd = this.currentRound.bettingEndTime + config.GAME.BET_GRACE_PERIOD_MS;
+
+    // Allow bet if:
+    // 1. Still in BETTING state, OR
+    // 2. Within grace period AND (client timestamp was during betting OR no client timestamp provided)
+    const inBettingState = this.currentRound.state === "BETTING";
+    const withinGracePeriod = now <= gracePeriodEnd;
+    const clientWasDuringBetting = clientTimestamp && clientTimestamp <= this.currentRound.bettingEndTime;
+
+    if (!inBettingState && !(withinGracePeriod && (clientWasDuringBetting || !clientTimestamp))) {
+      throw new Error("Betting not allowed");
+    }
+
     if (this.currentRound.bets.has(playerId)) {
       throw new Error("Already placed a bet");
     }
@@ -310,7 +327,7 @@ class HorseEngine {
       horseName: horse.name,
       payout: horse.payout,
       transactionId,
-      timestamp: Date.now(),
+      timestamp: now,
     });
 
     return true;

@@ -8,6 +8,7 @@ module.exports = {
     ROUND_DELAY_MS: 5000,
     BETTING_PHASE_MS: 15000,
     RACE_DURATION_MS: 8000,
+    BET_GRACE_PERIOD_MS: 2000, // Allow bets up to 2 seconds after betting phase ends
 
     // Bet limits
     MIN_BET: 1,
