@@ -21,7 +21,7 @@ class GameDisplay {
   }
 
   connectSocket(sessionId) {
-    this.socket = io("/horses/ws/game", {
+    this.socket = io("/ws/game", {
       path: "/horses/socket.io/",
       query: { sessionId },
       transports: ["websocket", "polling"],

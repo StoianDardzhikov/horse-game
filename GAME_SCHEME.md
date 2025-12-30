@@ -25,13 +25,15 @@ Complete template for building casino game providers. This file contains all inf
 
 4. **frontend/game-iframe/game.js**:
 
-   - `path: "/{game}/socket.io/"`
+   - Namespace: `io("/{game}/ws/game", ...)`
+   - Path: `path: "/{game}/socket.io/"`
 
 5. **frontend/controls-iframe/controls.js**:
-   - `path: "/{game}/socket.io/"`
 
-**Standard endpoints do NOT get the game prefix:**
-`/session/init`, `/game-iframe`, `/controls-iframe`, `/ws/game`, `/ws/controls`, etc.
+   - Namespace: `io("/{game}/ws/controls", ...)`
+   - Path: `path: "/{game}/socket.io/"`
+
+> **Important:** Both the Socket.IO namespace AND the path must include the `/{game}` prefix.
 
 ---
 
@@ -131,11 +133,13 @@ Complete template for building casino game providers. This file contains all inf
 ```json
 {
   "sessionId": "SESSION-uuid-xxx",
-  "gameUrl": "/game-iframe?sessionId=SESSION-xxx",
-  "controlsUrl": "/controls-iframe?sessionId=SESSION-xxx",
+  "gameUrl": "/game-iframe/?sessionId=SESSION-xxx",
+  "controlsUrl": "/controls-iframe/?sessionId=SESSION-xxx",
   "expiresAt": 1700086399999
 }
 ```
+
+> **Note:** The trailing slash before the query string (`/?`) is required for proper static file serving.
 
 ### Game State
 
@@ -1752,8 +1756,8 @@ class GameDisplay {
   }
 
   connectSocket(sessionId) {
-    // REPLACE {game} with your game name
-    this.socket = io("/ws/game", {
+    // REPLACE {game} with your game name in BOTH the namespace AND the path
+    this.socket = io("/{game}/ws/game", {
       path: "/{game}/socket.io/",
       query: { sessionId },
       transports: ["websocket", "polling"],
@@ -2185,8 +2189,8 @@ class GameControls {
   }
 
   connectSocket(sessionId) {
-    // REPLACE {game} with your game name
-    this.socket = io("/ws/controls", {
+    // REPLACE {game} with your game name in BOTH the namespace AND the path
+    this.socket = io("/{game}/ws/controls", {
       path: "/{game}/socket.io/",
       query: { sessionId },
       transports: ["websocket", "polling"],
