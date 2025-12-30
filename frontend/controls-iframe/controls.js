@@ -77,6 +77,9 @@ class GameControls {
   }
 
   onBetResult(data) {
+    const betBtn = document.getElementById("bet-btn");
+    betBtn.textContent = "Place Bet";
+
     if (data.success) {
       this.currentBet = { amount: data.amount, betId: data.betId };
       this.balance = data.newBalance;
@@ -89,10 +92,13 @@ class GameControls {
       document.getElementById("current-bet-horse").innerHTML =
         `on <span style="color: ${horse?.color}">${horse?.name}</span> (${horse?.payout}x)`;
 
-      document.getElementById("bet-btn").style.display = "none";
+      betBtn.style.display = "none";
       this.disableBetInputs(true);
       this.showStatus("Bet placed! Good luck!", "success");
     } else {
+      // Re-enable button and inputs if bet failed
+      this.disableBetInputs(false);
+      this.validateBet();
       this.showStatus(data.error || "Bet failed", "error");
     }
   }
@@ -230,6 +236,12 @@ class GameControls {
       this.showStatus("Please select a horse", "error");
       return;
     }
+
+    // Immediately disable button and inputs to prevent double betting
+    const betBtn = document.getElementById("bet-btn");
+    betBtn.disabled = true;
+    betBtn.textContent = "Placing...";
+    this.disableBetInputs(true);
 
     this.socket.emit("bet", {
       amount,
