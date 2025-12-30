@@ -254,11 +254,98 @@ None (read-only namespace)
 
 #### Events FROM Client TO Server:
 
-| Event         | Payload                            | Description                             |
-| ------------- | ---------------------------------- | --------------------------------------- |
-| `bet`         | `{ amount, betType?, selection? }` | Place a bet                             |
-| `action`      | `{ action, params? }`              | Game action (cashout, hit, stand, etc.) |
-| `get_balance` | `{}`                               | Request balance from platform           |
+| Event         | Payload                                        | Description                             |
+| ------------- | ---------------------------------------------- | --------------------------------------- |
+| `bet`         | `{ amount, betType?, selection?, timestamp }` | Place a bet                             |
+| `action`      | `{ action, params? }`                          | Game action (cashout, hit, stand, etc.) |
+| `get_balance` | `{}`                                           | Request balance from platform           |
+
+---
+
+## IMPORTANT: Betting Implementation Requirements
+
+### 1. Client-Side: Immediate Button Disabling
+
+> **CRITICAL:** The bet button MUST be disabled immediately when clicked, BEFORE waiting for server response. This prevents double-betting issues from rapid clicks or slow network.
+
+```javascript
+placeBet() {
+  // Validate inputs first...
+
+  // IMMEDIATELY disable button and inputs to prevent double betting
+  const betBtn = document.getElementById("bet-btn");
+  betBtn.disabled = true;
+  betBtn.textContent = "Placing...";
+  this.disableBetInputs(true);
+
+  // Include timestamp so server knows when bet was initiated
+  this.socket.emit("bet", {
+    amount,
+    selection: this.selectedHorse.toString(),
+    timestamp: Date.now(),  // IMPORTANT: Include timestamp
+  });
+}
+
+onBetResult(data) {
+  const betBtn = document.getElementById("bet-btn");
+  betBtn.textContent = "Place Bet";
+
+  if (data.success) {
+    // Keep button hidden/disabled, show bet confirmation
+  } else {
+    // Re-enable button and inputs if bet failed
+    this.disableBetInputs(false);
+    this.validateBet();
+    this.showStatus(data.error || "Bet failed", "error");
+  }
+}
+```
+
+### 2. Server-Side: Grace Period for Late Bets
+
+> **CRITICAL:** Bets placed at the last second may arrive after the betting phase ends due to network latency. The server MUST implement a grace period to accept these legitimate bets.
+
+**Config:**
+```javascript
+BET_GRACE_PERIOD_MS: 2000, // Allow bets up to 2 seconds after betting phase ends
+```
+
+**Implementation in game engine:**
+```javascript
+registerBet(playerId, amount, betType, selection, transactionId, clientTimestamp = null) {
+  if (!this.currentRound) {
+    throw new Error("Betting not allowed");
+  }
+
+  const now = Date.now();
+  const gracePeriodEnd = this.currentRound.bettingEndTime + config.GAME.BET_GRACE_PERIOD_MS;
+
+  // Allow bet if:
+  // 1. Still in BETTING state, OR
+  // 2. Within grace period AND client timestamp was during betting phase
+  const inBettingState = this.currentRound.state === "BETTING";
+  const withinGracePeriod = now <= gracePeriodEnd;
+  const clientWasDuringBetting = clientTimestamp && clientTimestamp <= this.currentRound.bettingEndTime;
+
+  if (!inBettingState && !(withinGracePeriod && (clientWasDuringBetting || !clientTimestamp))) {
+    throw new Error("Betting not allowed");
+  }
+
+  // ... rest of bet registration
+}
+```
+
+**Round must track betting end time:**
+```javascript
+createRound(serverSeed, clientSeed, nonce) {
+  this.currentRound = {
+    // ...
+    bettingStartTime: Date.now(),
+    bettingEndTime: Date.now() + config.GAME.BETTING_PHASE_MS,
+    // ...
+  };
+}
+```
 
 ---
 

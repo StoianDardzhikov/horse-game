@@ -7,6 +7,8 @@ class GameControls {
     this.selectedHorse = null;
     this.horses = [];
     this.state = "WAITING";
+    this.currentRoundId = null;
+    this.betPending = false; // Track if bet is being processed
     this.init();
   }
 
@@ -77,6 +79,7 @@ class GameControls {
   }
 
   onBetResult(data) {
+    this.betPending = false;
     const betBtn = document.getElementById("bet-btn");
     betBtn.textContent = "Place Bet";
 
@@ -96,9 +99,11 @@ class GameControls {
       this.disableBetInputs(true);
       this.showStatus("Bet placed! Good luck!", "success");
     } else {
-      // Re-enable button and inputs if bet failed
-      this.disableBetInputs(false);
-      this.validateBet();
+      // Re-enable button and inputs if bet failed AND still in betting phase
+      if (this.state === "BETTING") {
+        this.disableBetInputs(false);
+        this.validateBet();
+      }
       this.showStatus(data.error || "Bet failed", "error");
     }
   }
@@ -120,9 +125,11 @@ class GameControls {
   }
 
   onBetStatus(data) {
-    if (data.hasBet) {
+    // Only apply bet status if it's for the current round
+    if (data.hasBet && this.state === "BETTING") {
       this.currentBet = data;
       this.selectedHorse = data.selection;
+      this.betPending = false;
       const horse = this.horses.find((h) => h.id === data.selection);
 
       document.getElementById("current-bet").style.display = "block";
@@ -151,7 +158,15 @@ class GameControls {
   }
 
   onBettingPhase(data) {
+    // New round starting - always reset bet UI from previous round
+    if (this.currentRoundId !== data.roundId) {
+      this.resetBetUI();
+      this.currentRoundId = data.roundId;
+    }
+
     this.state = "BETTING";
+    this.betPending = false;
+
     if (data.horses) {
       this.horses = data.horses;
       this.renderHorseSelection();
@@ -163,6 +178,15 @@ class GameControls {
   onRoundStart(data) {
     this.state = "RUNNING";
     this.setRoundStatus("RACE IN PROGRESS", "running");
+
+    // If bet was still pending when round started, it likely failed or was too late
+    if (this.betPending && !this.currentBet) {
+      this.betPending = false;
+      const betBtn = document.getElementById("bet-btn");
+      betBtn.textContent = "Place Bet";
+      this.showStatus("Bet was not placed in time", "error");
+    }
+
     this.updateUI();
   }
 
@@ -174,6 +198,13 @@ class GameControls {
     this.state = "ENDED";
     const winner = data.outcome;
     this.setRoundStatus(`WINNER: ${winner.horseName}`, "");
+
+    // If player didn't bet this round (no currentBet), reset UI now
+    // If player did bet, wait for onRoundResult to reset
+    if (!this.currentBet) {
+      this.resetBetUI();
+    }
+
     this.updateUI();
   }
 
@@ -200,7 +231,7 @@ class GameControls {
   }
 
   selectHorse(horseId) {
-    if (this.state !== "BETTING" || this.currentBet) return;
+    if (this.state !== "BETTING" || this.currentBet || this.betPending) return;
 
     this.selectedHorse = horseId;
     document.querySelectorAll(".horse-btn").forEach((btn) => {
@@ -215,7 +246,7 @@ class GameControls {
     const amount = parseFloat(document.getElementById("bet-amount").value);
     const btn = document.getElementById("bet-btn");
 
-    if (this.state === "BETTING" && !this.currentBet && this.selectedHorse && amount > 0 && amount <= this.balance) {
+    if (this.state === "BETTING" && !this.currentBet && !this.betPending && this.selectedHorse && amount > 0 && amount <= this.balance) {
       btn.disabled = false;
     } else {
       btn.disabled = true;
@@ -223,6 +254,11 @@ class GameControls {
   }
 
   placeBet() {
+    // Prevent double clicks
+    if (this.betPending || this.currentBet) {
+      return;
+    }
+
     const amount = parseFloat(document.getElementById("bet-amount").value);
     if (isNaN(amount) || amount <= 0) {
       this.showStatus("Enter a valid bet amount", "error");
@@ -237,7 +273,8 @@ class GameControls {
       return;
     }
 
-    // Immediately disable button and inputs to prevent double betting
+    // Mark bet as pending and disable UI immediately
+    this.betPending = true;
     const betBtn = document.getElementById("bet-btn");
     betBtn.disabled = true;
     betBtn.textContent = "Placing...";
@@ -277,19 +314,23 @@ class GameControls {
 
     switch (this.state) {
       case "BETTING":
-        if (!this.currentBet) {
+        if (!this.currentBet && !this.betPending) {
           betBtn.style.display = "block";
+          betBtn.textContent = "Place Bet";
           this.disableBetInputs(false);
           this.validateBet();
+        } else if (this.betPending) {
+          betBtn.disabled = true;
+          betBtn.textContent = "Placing...";
+          this.disableBetInputs(true);
         }
         break;
       case "RUNNING":
-        betBtn.disabled = true;
-        this.disableBetInputs(true);
-        break;
       case "ENDED":
       case "WAITING":
-        betBtn.disabled = true;
+        if (!this.betPending) {
+          betBtn.disabled = true;
+        }
         this.disableBetInputs(true);
         break;
     }
@@ -308,9 +349,14 @@ class GameControls {
   resetBetUI() {
     this.currentBet = null;
     this.selectedHorse = null;
+    this.betPending = false;
+
+    const betBtn = document.getElementById("bet-btn");
+    betBtn.style.display = "block";
+    betBtn.disabled = true;
+    betBtn.textContent = "Place Bet";
+
     document.getElementById("current-bet").style.display = "none";
-    document.getElementById("bet-btn").style.display = "block";
-    document.getElementById("bet-btn").disabled = true;
     document
       .querySelectorAll(".horse-btn")
       .forEach((b) => b.classList.remove("selected"));
