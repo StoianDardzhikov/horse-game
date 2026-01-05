@@ -62,6 +62,22 @@ class GameDisplay {
       this.horses = data.horses;
       this.renderTrack();
     }
+
+    // Handle joining mid-betting phase
+    if (data.state === "BETTING" && data.bettingTimeRemaining > 0) {
+      this.roundId = data.roundId;
+      this.hideWinner();
+      this.hideLeaderDisplay();
+      this.resetHorsePositions();
+      this.showStatus("PLACE YOUR BETS!", true);
+      const remainingSeconds = Math.ceil(data.bettingTimeRemaining / 1000);
+      this.startCountdown(remainingSeconds);
+      this.startBettingTimer(remainingSeconds);
+    } else if (data.state === "WAITING") {
+      this.showStatus("Waiting for next race...");
+    } else if (data.state === "RUNNING") {
+      this.showStatus("Race in progress...");
+    }
   }
 
   onBettingPhase(data) {
@@ -77,7 +93,7 @@ class GameDisplay {
     this.hideWinner();
     this.hideLeaderDisplay();
     this.resetHorsePositions();
-    this.showStatus("PLACE YOUR BETS!");
+    this.showStatus("PLACE YOUR BETS!", true);
     this.startCountdown(data.duration / 1000);
     this.startBettingTimer(data.duration / 1000);
   }
@@ -86,7 +102,14 @@ class GameDisplay {
     this.state = "RUNNING";
     this.clearCountdown();
     this.hideBettingTimer();
-    this.showStatus("AND THEY'RE OFF!");
+    this.showStatus("AND THEY'RE OFF!", true);
+    // Add racing animation to horses
+    this.horses.forEach((horse) => {
+      const horseEl = document.getElementById(`horse-${horse.id}`);
+      if (horseEl) horseEl.classList.add("racing");
+    });
+    // Add racing-active class to track for finish line glow
+    document.getElementById("race-track").classList.add("racing-active");
   }
 
   onRoundTick(data) {
@@ -155,8 +178,15 @@ class GameDisplay {
     this.state = "ENDED";
     this.clearCountdown();
     this.hideLeaderDisplay();
-    this.showStatus("RACE FINISHED!");
+    this.showStatus("RACE FINISHED!", true);
     this.showWinner(data.outcome);
+    // Remove racing animation from horses
+    this.horses.forEach((horse) => {
+      const horseEl = document.getElementById(`horse-${horse.id}`);
+      if (horseEl) horseEl.classList.remove("racing");
+    });
+    // Remove racing-active class from track
+    document.getElementById("race-track").classList.remove("racing-active");
   }
 
   onHistory(data) {
@@ -178,9 +208,15 @@ class GameDisplay {
     const track = document.getElementById("race-track");
     track.innerHTML = "";
 
+    const finishLetters = ['F', 'I', 'N', 'I', 'S', 'H'];
+
     this.horses.forEach((horse, index) => {
       const lane = document.createElement("div");
       lane.className = "lane";
+      if (index % 2 === 1) {
+        lane.classList.add("lane-dark");
+      }
+      const finishLetter = finishLetters[index] || '';
       lane.innerHTML = `
         <div class="lane-number">#${horse.id}</div>
         <div class="horse-info">
@@ -188,8 +224,10 @@ class GameDisplay {
           <div class="horse-odds">${horse.payout.toFixed(2)}x</div>
         </div>
         <div class="lane-track">
-          <div class="horse" id="horse-${horse.id}">&#127943;</div>
-          <div class="finish-line"></div>
+          <img class="horse" id="horse-${horse.id}" src="/horses/horse${horse.id}.svg" alt="Horse ${horse.id}" />
+          <div class="finish-line">
+            <span class="finish-letter">${finishLetter}</span>
+          </div>
         </div>
       `;
       track.appendChild(lane);
@@ -217,8 +255,14 @@ class GameDisplay {
     document.getElementById("winner-display").style.display = "none";
   }
 
-  showStatus(text) {
-    document.getElementById("status-text").textContent = text;
+  showStatus(text, highlight = false) {
+    const el = document.getElementById("status-text");
+    el.textContent = text;
+    if (highlight) {
+      el.classList.remove("highlight");
+      void el.offsetWidth; // Force reflow to restart animation
+      el.classList.add("highlight");
+    }
   }
 
   startCountdown(seconds) {

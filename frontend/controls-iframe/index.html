@@ -314,6 +314,121 @@
         color: #444;
         text-align: center;
       }
+
+      /* Responsive: Vertical layout for portrait/narrow viewports */
+      @media (max-aspect-ratio: 1/1) {
+        body {
+          padding: 16px;
+          height: auto;
+          min-height: 100vh;
+        }
+
+        .main-container {
+          flex-direction: column;
+          gap: 16px;
+          align-items: stretch;
+        }
+
+        .info-panel {
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          min-width: auto;
+        }
+
+        .balance-display {
+          padding: 12px 16px;
+        }
+
+        .balance-amount {
+          font-size: 26px;
+        }
+
+        .round-status {
+          font-size: 14px;
+          padding: 10px 16px;
+        }
+
+        .horse-panel {
+          width: 100%;
+        }
+
+        .section-label {
+          font-size: 12px;
+          margin-bottom: 8px;
+        }
+
+        .horse-selection {
+          flex-wrap: wrap;
+        }
+
+        .horse-btn {
+          flex: 1 1 calc(33.333% - 8px);
+          min-width: calc(33.333% - 8px);
+          padding: 12px 8px;
+        }
+
+        .horse-btn .horse-name {
+          font-size: 13px;
+        }
+
+        .horse-btn .horse-odds {
+          font-size: 20px;
+        }
+
+        .bet-panel {
+          min-width: auto;
+          width: 100%;
+        }
+
+        .bet-input-row {
+          justify-content: center;
+          gap: 10px;
+        }
+
+        .bet-input {
+          width: 120px;
+          padding: 12px;
+          font-size: 22px;
+        }
+
+        .quick-bets {
+          flex-direction: row;
+          gap: 6px;
+        }
+
+        .quick-bets-row {
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .quick-bet-btn {
+          padding: 8px 12px;
+          font-size: 13px;
+        }
+
+        .action-panel {
+          min-width: auto;
+          width: 100%;
+        }
+
+        .bet-btn {
+          padding: 20px 24px;
+          font-size: 18px;
+        }
+
+        .current-bet {
+          padding: 12px 16px;
+        }
+
+        .current-bet-amount {
+          font-size: 20px;
+        }
+
+        .rtp-info {
+          font-size: 10px;
+        }
+      }
     </style>
   </head>
   <body>

@@ -87,6 +87,12 @@ gameRouter.use(
   "/controls-iframe",
   express.static(path.join(__dirname, "../frontend/controls-iframe"))
 );
+// Serve horse SVG files
+gameRouter.get(/^\/horse(\d+)\.svg$/, (req, res) => {
+  const id = req.params[0];
+  res.type("image/svg+xml");
+  res.sendFile(path.join(__dirname, `../frontend/horse${id}.svg`));
+});
 gameRouter.get("/health", (req, res) =>
   res.json({ status: "ok", timestamp: Date.now() })
 );

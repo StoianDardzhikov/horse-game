@@ -32,6 +32,12 @@ app.use(
   "/controls-iframe",
   express.static(path.join(__dirname, "../frontend/controls-iframe"))
 );
+// Serve horse SVG files
+app.get(/^\/horse(\d+)\.svg$/, (req, res) => {
+  const id = req.params[0];
+  res.type("image/svg+xml");
+  res.sendFile(path.join(__dirname, `../frontend/horse${id}.svg`));
+});
 
 // Initialize services
 const gameEngine = new HorseEngine();

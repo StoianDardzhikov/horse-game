@@ -154,6 +154,20 @@ class GameControls {
       this.horses = data.horses;
       this.renderHorseSelection();
     }
+
+    // Handle joining mid-betting phase
+    if (data.state === "BETTING" && data.bettingTimeRemaining > 0) {
+      if (this.currentRoundId !== data.roundId) {
+        this.resetBetUI();
+        this.currentRoundId = data.roundId;
+      }
+      this.setRoundStatus("BETTING OPEN", "betting");
+    } else if (data.state === "WAITING") {
+      this.setRoundStatus("Waiting for next race...", "");
+    } else if (data.state === "RUNNING") {
+      this.setRoundStatus("RACE IN PROGRESS", "running");
+    }
+
     this.updateUI();
   }
 

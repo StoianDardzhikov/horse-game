@@ -55,6 +55,15 @@
         font-size: 36px;
         font-weight: bold;
         color: #00ff88;
+        transition: color 0.3s ease;
+      }
+      #status-text.highlight {
+        animation: statusPop 0.3s ease-out;
+      }
+      @keyframes statusPop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
       }
       #countdown {
         font-size: 42px;
@@ -128,6 +137,11 @@
         display: flex;
         align-items: center;
         gap: 20px;
+        animation: slideDown 0.3s ease-out;
+      }
+      @keyframes slideDown {
+        from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0); }
       }
       #leader-display .leader-label {
         font-size: 20px;
@@ -153,24 +167,27 @@
         justify-content: center;
       }
       #race-track {
-        background: linear-gradient(180deg, #2d5016 0%, #1e3a0f 100%);
         border-radius: 20px;
-        padding: 25px;
-        border: 6px solid #4a7023;
-        box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+        padding: 0;
+        overflow: hidden;
+        box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.3);
       }
       .lane {
         display: flex;
         align-items: center;
         height: 90px;
-        margin: 8px 0;
-        background: linear-gradient(90deg,
-          rgba(139, 90, 43, 0.3) 0%,
-          rgba(139, 90, 43, 0.1) 50%,
-          rgba(139, 90, 43, 0.3) 100%);
-        border-radius: 10px;
+        background: #3a7d32;
         position: relative;
-        border-bottom: 3px dashed rgba(255, 255, 255, 0.1);
+        padding-left: 10px;
+      }
+      .lane-dark {
+        background: #2d6327;
+      }
+      .lane:first-child {
+        border-radius: 20px 20px 0 0;
+      }
+      .lane:last-child {
+        border-radius: 0 0 20px 20px;
       }
       .lane-number {
         width: 60px;
@@ -190,24 +207,46 @@
         right: 0;
         top: 0;
         bottom: 0;
-        width: 20px;
-        background: repeating-linear-gradient(
-          0deg,
-          #fff 0px,
-          #fff 10px,
-          #000 10px,
-          #000 20px
-        );
+        width: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-left: 4px solid #fff;
+        padding-left: 12px;
+        transition: box-shadow 0.3s ease;
+      }
+      .racing-active .finish-line {
+        box-shadow: -10px 0 20px rgba(255, 255, 255, 0.2);
+      }
+      .finish-letter {
+        font-size: 36px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        transform: rotate(90deg);
+        transition: text-shadow 0.3s ease;
+      }
+      .racing-active .finish-letter {
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.8);
       }
       .horse {
         position: absolute;
         left: 0;
         top: 50%;
         transform: translateY(-50%);
-        font-size: 55px;
+        height: 70px;
+        width: auto;
         transition: left 0.06s ease-out;
-        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+        filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.5));
         will-change: left;
+        z-index: 10;
+      }
+      .horse.racing {
+        animation: gallop 0.15s ease-in-out infinite;
+      }
+      @keyframes gallop {
+        0%, 100% { transform: translateY(-50%) translateX(0); }
+        50% { transform: translateY(-52%) translateX(2px); }
       }
       .horse-info {
         width: 240px;
@@ -237,17 +276,22 @@
         display: none;
         z-index: 50;
         border: 6px solid #ffcc00;
-        animation: pulse 0.5s ease-in-out;
+        animation: winnerPop 0.5s ease-out, winnerGlow 2s ease-in-out infinite 0.5s;
       }
-      @keyframes pulse {
+      @keyframes winnerPop {
         0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-        50% { transform: translate(-50%, -50%) scale(1.1); }
+        70% { transform: translate(-50%, -50%) scale(1.05); }
         100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      }
+      @keyframes winnerGlow {
+        0%, 100% { box-shadow: 0 0 30px rgba(255, 204, 0, 0.4); }
+        50% { box-shadow: 0 0 60px rgba(255, 204, 0, 0.7); }
       }
       #winner-display h2 {
         color: #ffcc00;
         font-size: 42px;
         margin-bottom: 20px;
+        text-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
       }
       #winner-display .winner-name {
         font-size: 56px;
@@ -282,6 +326,11 @@
         align-items: center;
         gap: 10px;
         border: 2px solid rgba(255, 255, 255, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .history-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
       .history-horse-num {
         font-weight: bold;

@@ -384,8 +384,9 @@ class HorseEngine {
   }
 
   getState() {
-    return {
-      state: this.currentRound?.state || "WAITING",
+    const state = this.currentRound?.state || "WAITING";
+    const result = {
+      state,
       roundId: this.currentRound?.roundId,
       betsCount: this.currentRound?.bets?.size || 0,
       horses: this.horses.map((h) => ({
@@ -395,6 +396,13 @@ class HorseEngine {
         payout: h.payout,
       })),
     };
+
+    // Include remaining betting time if in BETTING state
+    if (state === "BETTING" && this.currentRound?.bettingEndTime) {
+      result.bettingTimeRemaining = Math.max(0, this.currentRound.bettingEndTime - Date.now());
+    }
+
+    return result;
   }
 
   getBet(playerId) {
