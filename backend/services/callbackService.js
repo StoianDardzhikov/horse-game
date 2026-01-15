@@ -36,16 +36,20 @@ class CallbackService {
   }
 
   async placeBet(session, roundId, amount, betType, selection) {
+    const horse = config.GAME.HORSES.find((h) => h.id === selection);
     const payload = {
       requestId: `BET-${roundId}-${session.playerId}-${Date.now()}`,
-      roundId,
       playerId: session.playerId,
       sessionId: session.sessionId,
       amount,
-      currency: session.currency,
-      betType,
-      selection,
-      timestamp: Date.now(),
+      metadata: {
+        roundId,
+        currency: session.currency,
+        betType,
+        selection,
+        selectionName: horse?.name || null,
+        timestamp: Date.now(),
+      },
     };
     return this.makeCallback(`${session.callbackBaseUrl}/bet`, payload);
   }
@@ -61,16 +65,18 @@ class CallbackService {
   ) {
     const payload = {
       requestId: `WIN-${roundId}-${session.playerId}-${Date.now()}`,
-      roundId,
       playerId: session.playerId,
       sessionId: session.sessionId,
-      betAmount,
-      multiplier,
       winAmount,
-      currency: session.currency,
-      betTransactionId,
-      outcome: JSON.stringify(outcome),
-      timestamp: Date.now(),
+      metadata: {
+        roundId,
+        betAmount,
+        multiplier,
+        currency: session.currency,
+        betTransactionId,
+        outcome: JSON.stringify(outcome),
+        timestamp: Date.now(),
+      },
     };
     return this.makeCallback(`${session.callbackBaseUrl}/win`, payload);
   }
@@ -78,14 +84,16 @@ class CallbackService {
   async rollback(session, roundId, amount, originalTransactionId, reason) {
     const payload = {
       requestId: `ROLLBACK-${roundId}-${session.playerId}-${Date.now()}`,
-      roundId,
       playerId: session.playerId,
       sessionId: session.sessionId,
       amount,
-      currency: session.currency,
       originalTransactionId,
-      reason,
-      timestamp: Date.now(),
+      metadata: {
+        roundId,
+        currency: session.currency,
+        reason,
+        timestamp: Date.now(),
+      },
     };
     return this.makeCallback(`${session.callbackBaseUrl}/rollback`, payload);
   }
@@ -94,7 +102,9 @@ class CallbackService {
     const payload = {
       playerId,
       sessionId,
-      timestamp: Date.now(),
+      metadata: {
+        timestamp: Date.now(),
+      },
     };
     return this.makeCallback(`${callbackBaseUrl}/balance`, payload);
   }
