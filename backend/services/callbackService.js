@@ -36,7 +36,7 @@ class CallbackService {
   }
 
   async placeBet(session, roundId, amount, betType, selection) {
-    const horse = config.GAME.HORSES.find((h) => h.id === selection);
+    const horse = config.GAME.HORSES.find((h) => h.id === parseInt(selection));
     const payload = {
       requestId: `BET-${roundId}-${session.playerId}-${Date.now()}`,
       playerId: session.playerId,
