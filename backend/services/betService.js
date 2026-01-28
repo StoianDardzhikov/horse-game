@@ -45,8 +45,10 @@ class BetService {
         transactionId = betResponse.transactionId;
         newBalance = betResponse.newBalance;
       } catch (e) {
-        // If callback fails, continue with local balance for testing
         console.warn("Platform callback failed, using local balance:", e.message);
+        return {
+          success: false
+        };
       }
     }
 
